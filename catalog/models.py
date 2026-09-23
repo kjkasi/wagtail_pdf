@@ -8,6 +8,7 @@ from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.fields import RichTextField
 from wagtail.models import Orderable, Page
 
+from .forms import PdfDocumentPageForm
 from .pdf_utils import get_pdf_page_count
 
 
@@ -67,6 +68,8 @@ class DocumentIndexPage(Page):
 
 
 class PdfDocumentPage(Page):
+    base_form_class = PdfDocumentPageForm
+
     description = models.TextField(verbose_name="Краткое описание")
     pdf_document = models.ForeignKey(
         "wagtaildocs.Document",

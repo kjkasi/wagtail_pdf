@@ -1,6 +1,6 @@
 ---
 bug_id: BUG-2026-09-23T224339
-status: open
+status: fixed
 severity: high
 scope: admin
 priority: high
@@ -55,12 +55,18 @@ The bug is a missing admin-form integration rather than invalid user data. Risk 
 
 ## Acceptance Criteria
 
-- [ ] A valid PDF page can be created in Wagtail admin.
-- [ ] All submitted page comments are persisted.
-- [ ] Missing, duplicate, out-of-range, and empty comments remain invalid.
-- [ ] All new tests pass.
-- [ ] Existing tests still pass.
+- [x] A valid PDF page can be created in Wagtail admin.
+- [x] All submitted page comments are persisted.
+- [x] Missing, duplicate, out-of-range, and empty comments remain invalid.
+- [x] All new tests pass.
+- [x] Existing tests still pass.
 
 ## Resolution
 
-<!-- filled in by validate-fix -->
+**Fixed:** 2026-09-23
+**Root cause confirmed:** Parent model validation read the child relation before Wagtail/modelcluster staged the submitted inline comments.
+**Fix applied:** A page admin form now stages a valid comment formset in the in-memory cluster before parent model validation.
+**Hardening added:** An admin-endpoint integration regression test proves that a complete two-page submission redirects and persists both comments.
+**Generalization sweep:** One project instance of this defect class was found and fixed; evidence is recorded in `specs/verifications/generalize-sweep-BUG-2026-09-23-pdf-inline-validation.json`.
+**Evidence:** 16 Python tests and 3 JavaScript tests pass; manual endpoint proof returned HTTP 302 and persisted comment pages `[1, 2]`.
+**Commits:** `4a4d4d5 test(admin): cover PDF page creation with inline comments`; `ca74693 fix(admin): stage PDF comments before page validation`.

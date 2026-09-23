@@ -1,0 +1,10 @@
+{
+  "defect_class": "parent model validation reads ParentalKey children before admin inline formset staging",
+  "grep_pattern": "ParentalKey plus parent clean() child-relation reads",
+  "match_count": 1,
+  "sweep_scope": "project Python source excluding migrations and dependencies",
+  "patched_in_pr": [
+    "PdfDocumentPage page_comments validation"
+  ],
+  "tracked_issues": []
+}

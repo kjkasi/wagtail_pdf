@@ -1,0 +1,13 @@
+{
+  "name": "wagtail-pdf-viewer",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "build:vendor": "node scripts/copy-pdfjs.mjs",
+    "test:js": "node --test catalog/static/catalog/js/*.test.mjs"
+  },
+  "dependencies": {
+    "pdfjs-dist": "6.3.289"
+  }
+}

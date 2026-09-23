@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}home-page{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">PDF + комментарии</p>
+    <h1>{{ page.title }}</h1>
+    {% if page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+    {% if catalog_index %}
+        <a class="primary-link" href="{% pageurl catalog_index %}">Открыть каталог</a>
+    {% else %}
+        <p class="empty-state">Каталог пока не опубликован.</p>
+    {% endif %}
+</section>
+{% endblock %}

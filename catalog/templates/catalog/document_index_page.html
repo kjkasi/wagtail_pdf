@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block body_class %}catalog-page{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Документы</p>
+    <h1>{{ page.title }}</h1>
+    {% if page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+</header>
+
+{% if documents %}
+<ul class="document-list">
+    {% for document in documents %}
+    <li class="document-card">
+        <div>
+            <h2>{{ document.title }}</h2>
+            <p>{{ document.description }}</p>
+        </div>
+        <a class="secondary-link" href="{% pageurl document %}">Открыть документ<span class="visually-hidden"> «{{ document.title }}»</span></a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state" role="status">
+    <h2>Документов пока нет</h2>
+    <p>Опубликованные документы появятся здесь.</p>
+</div>
+{% endif %}
+{% endblock %}

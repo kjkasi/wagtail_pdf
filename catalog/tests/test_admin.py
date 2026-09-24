@@ -1,4 +1,3 @@
-import json
 import shutil
 import tempfile
 from io import BytesIO
@@ -42,44 +41,29 @@ class PdfDocumentAdminTests(TestCase):
             )
         )
 
-    def test_editor_can_create_pdf_page_with_comment_for_every_page(self):
+    def test_editor_can_create_pdf_page_without_comments(self):
         document = self._make_document(pages=2)
+        add_url = reverse(
+            "wagtailadmin_pages:add",
+            args=("catalog", "pdfdocumentpage", self.index.pk),
+        )
 
+        form_response = self.client.get(add_url)
         response = self.client.post(
-            reverse(
-                "wagtailadmin_pages:add",
-                args=("catalog", "pdfdocumentpage", self.index.pk),
-            ),
+            add_url,
             {
                 "title": "Новый документ",
                 "slug": "new-document",
                 "description": "Описание",
                 "pdf_document": str(document.pk),
-                "page_comments-TOTAL_FORMS": "2",
-                "page_comments-INITIAL_FORMS": "0",
-                "page_comments-MIN_NUM_FORMS": "1",
-                "page_comments-MAX_NUM_FORMS": "1000",
-                "page_comments-0-page_number": "1",
-                "page_comments-0-comment": self._rich_text("Первый"),
-                "page_comments-0-id": "",
-                "page_comments-0-ORDER": "1",
-                "page_comments-0-DELETE": "",
-                "page_comments-1-page_number": "2",
-                "page_comments-1-comment": self._rich_text("Второй"),
-                "page_comments-1-id": "",
-                "page_comments-1-ORDER": "2",
-                "page_comments-1-DELETE": "",
                 "action-publish": "action-publish",
             },
         )
 
+        self.assertNotContains(form_response, "page_comments")
         self.assertEqual(response.status_code, 302)
         page = PdfDocumentPage.objects.get(slug="new-document")
         self.assertEqual(page.page_count, 2)
-        self.assertEqual(
-            list(page.page_comments.values_list("page_number", flat=True)),
-            [1, 2],
-        )
 
     @staticmethod
     def _make_document(*, pages):
@@ -91,22 +75,4 @@ class PdfDocumentAdminTests(TestCase):
         return get_document_model().objects.create(
             title="sample.pdf",
             file=ContentFile(output.getvalue(), name="sample.pdf"),
-        )
-
-    @staticmethod
-    def _rich_text(value):
-        return json.dumps(
-            {
-                "blocks": [
-                    {
-                        "key": "abcde",
-                        "type": "unstyled",
-                        "depth": 0,
-                        "text": value,
-                        "inlineStyleRanges": [],
-                        "entityRanges": [],
-                    }
-                ],
-                "entityMap": {},
-            }
         )

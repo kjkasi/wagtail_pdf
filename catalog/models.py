@@ -1,14 +1,9 @@
-from html import unescape
-
-from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.html import strip_tags
-from modelcluster.fields import ParentalKey
-from wagtail.admin.panels import FieldPanel, InlinePanel
+from wagtail.admin.panels import FieldPanel
 from wagtail.fields import RichTextField
-from wagtail.models import Orderable, Page
+from wagtail.models import Page
 
-from .forms import PdfDocumentPageForm
 from .pdf_utils import get_pdf_page_count
 
 
@@ -68,8 +63,6 @@ class DocumentIndexPage(Page):
 
 
 class PdfDocumentPage(Page):
-    base_form_class = PdfDocumentPageForm
-
     description = models.TextField(verbose_name="Краткое описание")
     pdf_document = models.ForeignKey(
         "wagtaildocs.Document",
@@ -88,11 +81,6 @@ class PdfDocumentPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("description"),
         FieldPanel("pdf_document"),
-        InlinePanel(
-            "page_comments",
-            label="Комментарий к странице",
-            min_num=1,
-        ),
     ]
     parent_page_types = ["catalog.DocumentIndexPage"]
     subpage_types = []
@@ -110,101 +98,8 @@ class PdfDocumentPage(Page):
         else:
             self.page_count = page_count
 
-        comments = list(self.page_comments.all())
-        page_numbers = [comment.page_number for comment in comments]
-        duplicate_numbers = sorted(
-            {number for number in page_numbers if page_numbers.count(number) > 1}
-        )
-        if duplicate_numbers:
-            errors[NON_FIELD_ERRORS] = [
-                "Номер страницы не должен повторяться: "
-                + ", ".join(map(str, duplicate_numbers))
-                + "."
-            ]
-
-        if page_count:
-            out_of_range = sorted(
-                {
-                    number
-                    for number in page_numbers
-                    if number is not None and not 1 <= number <= page_count
-                }
-            )
-            if out_of_range:
-                errors.setdefault(NON_FIELD_ERRORS, []).append(
-                    "Номер страницы выходит за пределы PDF: "
-                    + ", ".join(map(str, out_of_range))
-                    + "."
-                )
-
-            present = {number for number in page_numbers if number is not None}
-            missing = sorted(set(range(1, page_count + 1)) - present)
-            if missing:
-                errors.setdefault(NON_FIELD_ERRORS, []).append(
-                    "Добавьте комментарии для страниц: "
-                    + ", ".join(map(str, missing))
-                    + "."
-                )
-
-        empty_comments = sorted(
-            comment.page_number
-            for comment in comments
-            if not _has_visible_text(comment.comment)
-            and comment.page_number is not None
-        )
-        if empty_comments:
-            errors.setdefault(NON_FIELD_ERRORS, []).append(
-                "Комментарий не должен быть пустым для страниц: "
-                + ", ".join(map(str, empty_comments))
-                + "."
-            )
-
         if errors:
             raise ValidationError(errors)
-
-    def comments_by_page(self):
-        return {
-            str(comment.page_number): str(comment.comment)
-            for comment in self.page_comments.all().order_by("page_number")
-        }
 
     class Meta:
         verbose_name = "PDF-документ"
-
-
-class PageComment(Orderable):
-    page = ParentalKey(
-        PdfDocumentPage,
-        on_delete=models.CASCADE,
-        related_name="page_comments",
-    )
-    page_number = models.PositiveIntegerField(verbose_name="Номер страницы")
-    comment = RichTextField(verbose_name="Комментарий")
-
-    panels = [FieldPanel("page_number"), FieldPanel("comment")]
-
-    def clean(self):
-        super().clean()
-        errors = {}
-        if self.page_number is not None and self.page_number < 1:
-            errors["page_number"] = "Номер страницы должен быть положительным."
-        if not _has_visible_text(self.comment):
-            errors["comment"] = "Комментарий не должен быть пустым."
-        if errors:
-            raise ValidationError(errors)
-
-    class Meta(Orderable.Meta):
-        ordering = ["page_number", "sort_order"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["page", "page_number"],
-                name="unique_comment_per_pdf_page",
-            )
-        ]
-        verbose_name = "комментарий к странице"
-        verbose_name_plural = "комментарии к страницам"
-
-
-def _has_visible_text(value) -> bool:
-    text = unescape(strip_tags(str(value or ""))).replace("\xa0", " ")
-    return bool(text.strip())

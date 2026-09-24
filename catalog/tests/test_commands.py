@@ -4,8 +4,9 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase, override_settings
+from pypdf import PdfReader
 
-from catalog.models import DocumentIndexPage, PageComment, PdfDocumentPage
+from catalog.models import DocumentIndexPage, PdfDocumentPage
 
 
 class CreateDemoCommandTests(TestCase):
@@ -33,5 +34,9 @@ class CreateDemoCommandTests(TestCase):
         page = PdfDocumentPage.objects.get()
         self.assertEqual(page.page_count, 3)
         self.assertTrue(page.live)
-        self.assertEqual(PageComment.objects.filter(page=page).count(), 3)
+        page.pdf_document.file.open("rb")
+        self.assertGreaterEqual(
+            len(PdfReader(page.pdf_document.file).pages[0].annotations),
+            3,
+        )
         self.assertIn("Демо создано", output.getvalue())

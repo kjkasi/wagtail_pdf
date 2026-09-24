@@ -8,12 +8,7 @@ from pypdf import PdfWriter
 from wagtail.documents import get_document_model
 from wagtail.models import Page
 
-from catalog.models import (
-    DocumentIndexPage,
-    HomePage,
-    PageComment,
-    PdfDocumentPage,
-)
+from catalog.models import DocumentIndexPage, HomePage, PdfDocumentPage
 
 
 class CatalogPageTests(TestCase):
@@ -41,7 +36,7 @@ class CatalogPageTests(TestCase):
         )
         self.index.save_revision().publish()
 
-    def add_document(self, title, slug, *, live, comment="Комментарий"):
+    def add_document(self, title, slug, *, live):
         writer = PdfWriter()
         writer.add_blank_page(width=300, height=400)
         output = BytesIO()
@@ -57,7 +52,6 @@ class CatalogPageTests(TestCase):
             pdf_document=document,
             live=live,
         )
-        instance.page_comments.add(PageComment(page_number=1, comment=comment))
         page = self.index.add_child(instance=instance)
         if live:
             page.save_revision().publish()
@@ -89,26 +83,28 @@ class CatalogPageTests(TestCase):
         self.assertContains(response, self.index.url)
         self.assertTemplateUsed(response, "catalog/home_page.html")
 
-    def test_document_page_includes_local_viewer_and_safe_comment_json(self):
-        page = self.add_document(
-            "Документ",
-            "document",
-            live=True,
-            comment='<p>Текст </script><script>alert("x")</script></p>',
-        )
+    def test_document_page_includes_comment_free_local_viewer(self):
+        page = self.add_document("Документ", "document", live=True)
 
         response = self.client.get(page.url)
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "catalog/pdf_document_page.html")
-        self.assertContains(response, 'id="pdf-comments"')
         self.assertContains(response, "catalog/js/pdf-viewer.js")
-        self.assertContains(response, 'aria-live="polite"', count=3)
+        self.assertContains(response, "catalog/vendor/pdfjs/pdf_viewer.css")
+        self.assertContains(response, 'class="viewer-shell"')
+        self.assertContains(response, 'class="viewer-toolbar"')
         self.assertContains(response, 'data-previous disabled')
         self.assertContains(response, 'data-next disabled')
-        self.assertContains(response, 'type="button"', count=2)
-        self.assertNotContains(response, "</script><script>alert")
-        self.assertContains(response, "\\u003C/script\\u003E")
+        self.assertContains(response, "data-zoom-out")
+        self.assertContains(response, "data-zoom-in")
+        self.assertContains(response, "data-zoom-fit")
+        self.assertContains(response, "data-zoom-level")
+        self.assertContains(response, "data-annotation-layer")
+        self.assertContains(response, 'type="button"', count=5)
+        self.assertNotContains(response, 'class="comment-panel"')
+        self.assertNotContains(response, "data-comment")
+        self.assertNotContains(response, "pdf-comments")
 
     def test_page_type_restrictions(self):
         self.assertEqual(

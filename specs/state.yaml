@@ -1,6 +1,17 @@
-active_flow: fix_bug
-bug_cycle:
-  current_step: 5
-  completed_steps: [1, 2, 3, 4]
+active_flow: verify_work
+active_plan: specs/PDF_VIEWER_CHANGE_PLAN.md
+previous_flow:
+  name: fix_bug
+  status: validated_pending_release
+  handoff: release-branch
+implementation:
+  current_step: 6
+  completed_steps: [0, 1, 2, 3, 4, 5, 7]
+  backup: page-comments-backup.json
+  manual_verification_pending: "Проверка со второго компьютера в LAN с HAR/скриншотом"
+verification:
+  automated: passing
+  django_tests: 11
+  javascript_tests: 4
 handoff:
-  next_skill: release-branch
+  next_skill: manual_lan_verification

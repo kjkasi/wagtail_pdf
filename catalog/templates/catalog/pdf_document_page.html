@@ -4,6 +4,10 @@
 {% block title %}{{ page.title }}{% endblock %}
 {% block body_class %}document-page{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'catalog/vendor/pdfjs/pdf_viewer.css' %}">
+{% endblock %}
+
 {% block content %}
 <article class="pdf-viewer" data-pdf-viewer data-pdf-url="{{ page.pdf_document.url }}" aria-busy="true">
     <header class="document-heading">
@@ -12,35 +16,34 @@
         <p>{{ page.description }}</p>
     </header>
 
-    <div class="viewer-grid">
-        <section class="pdf-panel" aria-label="Страница PDF-документа">
-            <div class="pdf-stage" data-pdf-stage>
-                <p class="viewer-status" data-loading role="status" aria-live="polite">Загрузка PDF…</p>
-                <p class="viewer-error" data-error role="alert" hidden></p>
+    <div class="viewer-shell">
+        <section class="pdf-stage" data-pdf-stage aria-label="Страница PDF-документа">
+            <p class="viewer-status" data-loading role="status" aria-live="polite">Загрузка PDF…</p>
+            <p class="viewer-error" data-error role="alert" hidden></p>
+            <div class="pdf-page" data-pdf-page>
                 <canvas data-pdf-canvas hidden aria-label="Текущая страница PDF"></canvas>
+                <div class="annotationLayer" data-annotation-layer></div>
             </div>
         </section>
 
-        <aside class="comment-panel" aria-labelledby="comment-heading">
-            <p class="eyebrow">Редакторский комментарий</p>
-            <h2 id="comment-heading">Комментарий к странице <span data-comment-page>1</span></h2>
-            <div class="comment-content prose" data-comment aria-live="polite">
-                <p>Комментарий появится после загрузки страницы.</p>
+        <nav class="viewer-toolbar" aria-label="Управление PDF-документом">
+            <div class="page-controls">
+                <button type="button" data-previous disabled>← Назад</button>
+                <p class="page-indicator" aria-live="polite">
+                    <span class="visually-hidden">Текущая страница:</span>
+                    <strong data-current-page>—</strong> / <span data-total-pages>—</span>
+                </p>
+                <button type="button" data-next disabled>Вперёд →</button>
             </div>
-        </aside>
+            <div class="zoom-controls" aria-label="Масштаб страницы">
+                <button type="button" data-zoom-out disabled aria-label="Уменьшить масштаб">−</button>
+                <output data-zoom-level aria-live="polite">100%</output>
+                <button type="button" data-zoom-in disabled aria-label="Увеличить масштаб">+</button>
+                <button type="button" data-zoom-fit disabled>По ширине</button>
+            </div>
+        </nav>
     </div>
-
-    <nav class="viewer-navigation" aria-label="Навигация по страницам PDF">
-        <button type="button" data-previous disabled>← Предыдущая страница</button>
-        <p class="page-indicator" aria-live="polite">
-            <span class="visually-hidden">Текущая страница:</span>
-            <strong data-current-page>—</strong> / <span data-total-pages>—</span>
-        </p>
-        <button type="button" data-next disabled>Следующая страница →</button>
-    </nav>
 </article>
-
-{{ page.comments_by_page|json_script:"pdf-comments" }}
 {% endblock %}
 
 {% block extra_js %}

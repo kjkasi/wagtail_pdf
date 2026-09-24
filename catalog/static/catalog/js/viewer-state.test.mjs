@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  MAX_ZOOM,
+  MIN_ZOOM,
   clampPage,
-  commentForPage,
+  clampZoom,
   nextTarget,
+  nextZoom,
+  zoomPercent,
 } from "./viewer-state.js";
 
 test("page numbers are clamped to document boundaries", () => {
@@ -19,9 +23,16 @@ test("navigation uses the latest requested page", () => {
   assert.equal(nextTarget(1, -1, 4), 1);
 });
 
-test("missing and blank comments use the defensive fallback", () => {
-  const comments = { "1": "<p>Первый</p>", "2": "  " };
-  assert.equal(commentForPage(comments, 1), "<p>Первый</p>");
-  assert.equal(commentForPage(comments, 2), null);
-  assert.equal(commentForPage(comments, 3), null);
+test("zoom is bounded between 50 and 300 percent", () => {
+  assert.equal(clampZoom(0.1), MIN_ZOOM);
+  assert.equal(clampZoom(4), MAX_ZOOM);
+  assert.equal(clampZoom(1.25), 1.25);
+});
+
+test("zoom changes in exact 25 percent steps", () => {
+  assert.equal(nextZoom(1, 1), 1.25);
+  assert.equal(nextZoom(1, -1), 0.75);
+  assert.equal(nextZoom(MAX_ZOOM, 1), MAX_ZOOM);
+  assert.equal(nextZoom(MIN_ZOOM, -1), MIN_ZOOM);
+  assert.equal(zoomPercent(1.25), 125);
 });

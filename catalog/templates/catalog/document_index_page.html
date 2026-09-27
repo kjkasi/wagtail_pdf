@@ -4,28 +4,29 @@
 {% block body_class %}catalog-page{% endblock %}
 
 {% block content %}
-<header class="page-heading">
-    <p class="eyebrow">Документы</p>
+<header class="mb-4">
     <h1>{{ page.title }}</h1>
-    {% if page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+    {% if page.intro %}<div class="lead text-body-secondary">{{ page.intro|richtext }}</div>{% endif %}
 </header>
 
 {% if documents %}
-<ul class="document-list">
+<ul class="row g-3 list-unstyled">
     {% for document in documents %}
-    <li class="document-card">
-        <div>
-            <h2>{{ document.title }}</h2>
-            <p>{{ document.description }}</p>
-        </div>
-        <a class="secondary-link" href="{% pageurl document %}">Открыть документ<span class="visually-hidden"> «{{ document.title }}»</span></a>
+    <li class="col-12 col-lg-6">
+        <article class="card h-100">
+            <div class="card-body d-flex flex-column align-items-start">
+                <h2 class="card-title h4">{{ document.title }}</h2>
+                <p class="card-text text-body-secondary">{{ document.description }}</p>
+                <a class="btn btn-outline-primary mt-auto" href="{% pageurl document %}">Открыть документ<span class="visually-hidden"> «{{ document.title }}»</span></a>
+            </div>
+        </article>
     </li>
     {% endfor %}
 </ul>
 {% else %}
-<div class="empty-state" role="status">
-    <h2>Документов пока нет</h2>
-    <p>Опубликованные документы появятся здесь.</p>
+<div class="alert alert-info" role="status">
+    <h2 class="h4">Документов пока нет</h2>
+    <p class="mb-0">Опубликованные документы появятся здесь.</p>
 </div>
 {% endif %}
 {% endblock %}

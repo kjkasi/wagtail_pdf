@@ -4,14 +4,13 @@
 {% block body_class %}home-page{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <p class="eyebrow">PDF + комментарии</p>
-    <h1>{{ page.title }}</h1>
-    {% if page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+<section class="py-4">
+    <h1 class="display-4 fw-bold">{{ page.title }}</h1>
+    {% if page.intro %}<div class="lead text-body-secondary">{{ page.intro|richtext }}</div>{% endif %}
     {% if catalog_index %}
-        <a class="primary-link" href="{% pageurl catalog_index %}">Открыть каталог</a>
+        <a class="btn btn-primary mt-3" href="{% pageurl catalog_index %}">Открыть каталог</a>
     {% else %}
-        <p class="empty-state">Каталог пока не опубликован.</p>
+        <p class="alert alert-info mt-3">Каталог пока не опубликован.</p>
     {% endif %}
 </section>
 {% endblock %}

@@ -1,9 +1,12 @@
 import shutil
 import tempfile
 from io import BytesIO
+from typing import cast
 
 from django.core.files.base import ContentFile
-from django.test import TestCase, override_settings
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase, override_settings
+from django.views.defaults import page_not_found, server_error
 from pypdf import PdfWriter
 from wagtail.documents import get_document_model
 from wagtail.models import Page
@@ -77,7 +80,7 @@ class CatalogPageTests(TestCase):
         self.assertContains(response, "Документов пока нет")
 
     def test_home_links_to_catalog(self):
-        response = self.client.get(self.home.url)
+        response = cast(HttpResponse, self.client.get(self.home.url))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.index.url)
@@ -86,11 +89,14 @@ class CatalogPageTests(TestCase):
     def test_document_page_includes_comment_free_local_viewer(self):
         page = self.add_document("Документ", "document", live=True)
 
-        response = self.client.get(page.url)
+        response = cast(HttpResponse, self.client.get(page.url))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "catalog/pdf_document_page.html")
-        self.assertContains(response, "catalog/js/pdf-viewer.js")
+        self.assertContains(response, "catalog/js/pdf-modal.js")
+        self.assertContains(response, "data-pdf-modal")
+        self.assertContains(response, "data-pdf-open")
+        self.assertContains(response, "data-pdf-close")
         self.assertContains(response, "catalog/vendor/pdfjs/pdf_viewer.css")
         self.assertContains(response, 'class="viewer-shell"')
         self.assertContains(response, 'class="viewer-toolbar"')
@@ -101,10 +107,33 @@ class CatalogPageTests(TestCase):
         self.assertContains(response, "data-zoom-fit")
         self.assertContains(response, "data-zoom-level")
         self.assertContains(response, "data-annotation-layer")
-        self.assertContains(response, 'type="button"', count=5)
+        self.assertContains(response, 'type="button"', count=7)
         self.assertNotContains(response, 'class="comment-panel"')
         self.assertNotContains(response, "data-comment")
         self.assertNotContains(response, "pdf-comments")
+
+    def test_public_pages_use_local_bootstrap(self):
+        document = self.add_document("Bootstrap PDF", "bootstrap", live=True)
+        request = RequestFactory().get("/missing/")
+        responses = [
+            self.client.get(self.home.url),
+            self.client.get(self.index.url),
+            self.client.get(document.url),
+            page_not_found(request, Exception("missing")),
+            server_error(request),
+        ]
+        for response in responses:
+            with self.subTest(status=response.status_code):
+                html = response.content.decode()
+                self.assertIn("/static/catalog/vendor/bootstrap/bootstrap.min.css", html)
+                self.assertIn("/static/catalog/vendor/bootstrap/bootstrap.bundle.min.js", html)
+                self.assertNotIn("cdn.jsdelivr.net", html)
+                self.assertNotIn("PDF + комментарии", html)
+                self.assertIn('href="/"', html)
+        self.index.get_children().delete()
+        empty = self.client.get(self.index.url)
+        self.assertContains(empty, "Документов пока нет")
+        self.assertContains(empty, "catalog/vendor/bootstrap/bootstrap.min.css")
 
     def test_page_type_restrictions(self):
         self.assertEqual(

@@ -5,12 +5,34 @@ bugs:
     severity: high
     priority: high
     scope: admin
-    summary: Valid PDF document pages cannot be created because parent validation runs before submitted inline comments are staged.
+    summary: >-
+      Valid PDF document pages cannot be created because parent validation
+      runs before submitted inline comments are staged.
     file: specs/bugs/BUG-2026-09-23T224339-pdf-page-admin-validation.md
     files_changed:
       - catalog/forms.py
       - catalog/models.py
       - catalog/tests/test_admin.py
-    approach: Stage the valid inline formset in the modelcluster relation before parent model validation.
+    approach: >-
+      Stage the valid inline formset in the modelcluster relation
+      before parent model validation.
     risk_level: low
     commit_message: "fix(admin): stage PDF comments before page validation"
+  - bug_id: BUG-pdfjs-browser-compatibility
+    date: 2026-09-27
+    status: fixed_pending_browser_acceptance
+    severity: high
+    priority: high
+    scope: public_viewer
+    summary: >-
+      Standard PDF.js requires Map upsert APIs absent in Firefox 140.
+    file: specs/bugs/BUG-pdfjs-browser-compatibility.md
+    files_changed:
+      - scripts/copy-pdfjs.mjs
+      - catalog/static/catalog/vendor/pdfjs/pdf.js
+      - catalog/static/catalog/vendor/pdfjs/pdf.worker.js
+      - catalog/tests/test_browser.py
+    approach: >-
+      Use upstream legacy main and worker from the same version 6.3.289.
+    evidence: specs/verifications/pdfjs-legacy-verify.yaml
+    os_constraint: none

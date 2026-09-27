@@ -1,0 +1,123 @@
+compatibility: PDF viewer failure {"stage":"render","url":"http://localhost:54317/documents/1/browser-smoke.pdf","error":"TypeError"}
+uu.
+================================== FAILURES ===================================
+_ ViewerBrowserSmokeTests.test_viewer_without_native_map_upsert_in_page_and_worker (engine='chromium') _
+
+self = <catalog.tests.test_browser.ViewerBrowserSmokeTests testMethod=test_viewer_without_native_map_upsert_in_page_and_worker>
+
+    def test_viewer_without_native_map_upsert_in_page_and_worker(self):
+        # Firefox 140 lacks these APIs (MDN: Firefox 144 / Chrome 145).
+        # This simulates API availability, not an entire old browser engine.
+        missing_apis = """
+            delete Map.prototype.getOrInsert;
+            delete Map.prototype.getOrInsertComputed;
+        """
+        page_url = self.live_server_url + self.document_page.url
+    
+        def old_worker_environment(route):
+            response = route.fetch()
+            route.fulfill(response=response, body=missing_apis + response.text())
+    
+        with sync_playwright() as playwright:
+            for engine in (playwright.chromium, playwright.firefox):
+                with self.subTest(engine=engine.name):
+                    browser = engine.launch(headless=True)
+                    page = browser.new_page()
+                    try:
+                        errors = []
+                        def capture_error(error, captured=errors):
+                            captured.append(str(error))
+                            print("compatibility error:", str(error))
+    
+                        page.on("pageerror", capture_error)
+                        page.on("console", lambda message: print("compatibility:", message.text))
+                        page.add_init_script(missing_apis)
+                        page.route("**/pdf.worker.js", old_worker_environment)
+                        page.goto(page_url)
+                        probe = page.evaluate("""async () => {
+                            const lib = await import('/static/catalog/vendor/pdfjs/pdf.js');
+                            lib.GlobalWorkerOptions.workerSrc = '/static/catalog/vendor/pdfjs/pdf.worker.js';
+                            const task = lib.getDocument({
+                                url: document.querySelector('[data-pdf-viewer]').dataset.pdfUrl,
+                            });
+                            const pdf = await task.promise;
+                            try {
+                                const first = await pdf.getPage(1);
+                                const canvas = document.createElement('canvas');
+                                await first.render({canvasContext: canvas.getContext('2d'),
+                                    viewport: first.getViewport({scale: 1})}).promise;
+                                return 'rendered';
+                            } catch (error) {
+                                return String(error);
+                            } finally {
+                                await task.destroy();
+                            }
+                        }""")
+>                       self.assertEqual(probe, "rendered")
+E                       AssertionError: 'TypeError: this[#methodPromises].getOrInsertComputed is not a function' != 'rendered'
+E                       - TypeError: this[#methodPromises].getOrInsertComputed is not a function
+E                       + rendered
+
+catalog\tests\test_browser.py:239: AssertionError
+_ ViewerBrowserSmokeTests.test_viewer_without_native_map_upsert_in_page_and_worker (engine='firefox') _
+
+self = <catalog.tests.test_browser.ViewerBrowserSmokeTests testMethod=test_viewer_without_native_map_upsert_in_page_and_worker>
+
+    def test_viewer_without_native_map_upsert_in_page_and_worker(self):
+        # Firefox 140 lacks these APIs (MDN: Firefox 144 / Chrome 145).
+        # This simulates API availability, not an entire old browser engine.
+        missing_apis = """
+            delete Map.prototype.getOrInsert;
+            delete Map.prototype.getOrInsertComputed;
+        """
+        page_url = self.live_server_url + self.document_page.url
+    
+        def old_worker_environment(route):
+            response = route.fetch()
+            route.fulfill(response=response, body=missing_apis + response.text())
+    
+        with sync_playwright() as playwright:
+            for engine in (playwright.chromium, playwright.firefox):
+                with self.subTest(engine=engine.name):
+                    browser = engine.launch(headless=True)
+                    page = browser.new_page()
+                    try:
+                        errors = []
+                        def capture_error(error, captured=errors):
+                            captured.append(str(error))
+                            print("compatibility error:", str(error))
+    
+                        page.on("pageerror", capture_error)
+                        page.on("console", lambda message: print("compatibility:", message.text))
+                        page.add_init_script(missing_apis)
+                        page.route("**/pdf.worker.js", old_worker_environment)
+                        page.goto(page_url)
+                        probe = page.evaluate("""async () => {
+                            const lib = await import('/static/catalog/vendor/pdfjs/pdf.js');
+                            lib.GlobalWorkerOptions.workerSrc = '/static/catalog/vendor/pdfjs/pdf.worker.js';
+                            const task = lib.getDocument({
+                                url: document.querySelector('[data-pdf-viewer]').dataset.pdfUrl,
+                            });
+                            const pdf = await task.promise;
+                            try {
+                                const first = await pdf.getPage(1);
+                                const canvas = document.createElement('canvas');
+                                await first.render({canvasContext: canvas.getContext('2d'),
+                                    viewport: first.getViewport({scale: 1})}).promise;
+                                return 'rendered';
+                            } catch (error) {
+                                return String(error);
+                            } finally {
+                                await task.destroy();
+                            }
+                        }""")
+>                       self.assertEqual(probe, "rendered")
+E                       AssertionError: 'TypeError: this[#methodPromises].getOrInsertComputed is not a function' != 'rendered'
+E                       - TypeError: this[#methodPromises].getOrInsertComputed is not a function
+E                       + rendered
+
+catalog\tests\test_browser.py:239: AssertionError
+=========================== short test summary info ===========================
+SUBFAILED(engine='chromium') catalog/tests/test_browser.py::ViewerBrowserSmokeTests::test_viewer_without_native_map_upsert_in_page_and_worker
+SUBFAILED(engine='firefox') catalog/tests/test_browser.py::ViewerBrowserSmokeTests::test_viewer_without_native_map_upsert_in_page_and_worker
+2 failed, 1 passed, 5 deselected in 8.50s

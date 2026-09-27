@@ -1,0 +1,8 @@
+
+> wagtail-pdf-viewer@0.1.0 build:vendor
+> node scripts/copy-pdfjs.mjs
+
+PDF.js assets copied to C:\Users\vedma\source\repos\wagtail_pdf\catalog\static\catalog\vendor\pdfjs
+Bootstrap assets copied to C:\Users\vedma\source\repos\wagtail_pdf\catalog\static\catalog\vendor\bootstrap
+uu.
+1 passed, 5 deselected, 2 subtests passed in 8.73s

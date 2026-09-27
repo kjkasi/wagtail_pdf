@@ -1,0 +1,73 @@
+plan: specs/BOOTSTRAP_ESR_MODAL_PLAN.md
+bug: specs/bugs/BUG-pdfjs-browser-compatibility.md
+branch: feat/bootstrap-pdf-modal
+verified_date: "2026-09-27"
+status: api_regression_fixed_real_browsers_pending
+os_constraint: none
+user_clarification: >-
+  The ALT package names were examples of browser versions,
+  not the operating system on which the error occurs.
+root_cause:
+  api: Map.prototype.getOrInsertComputed
+  failure: >-
+    TypeError: this[#methodPromises].getOrInsertComputed is not a function
+  firefox_native_support_from: "144"
+  chrome_native_support_from: "145"
+  source: >-
+    https://raw.githubusercontent.com/mdn/browser-compat-data/main/javascript/builtins/Map.json
+fix:
+  version: 6.3.289
+  distribution: legacy
+  main: legacy/build/pdf.mjs
+  worker: legacy/build/pdf.worker.mjs
+  annotation_assets: legacy/web
+  downgrade: false
+  custom_polyfills: false
+  byte_for_byte_vendor_comparison: pass
+reproduction:
+  method: >-
+    Remove Map upsert APIs before module execution in page and worker.
+    Load the annotated fixture, render canvas, display annotations,
+    and follow an internal link in Chromium and Firefox.
+  scope_limit: >-
+    Missing API simulation is not an entire old browser engine.
+    Actual Firefox ESR and Yandex versions remain unverified.
+  red:
+    output: specs/verifications/pdfjs-map-upsert-red.txt
+    exit_code: 1
+    engine_subtests_failed: 2
+  green:
+    output: specs/verifications/pdfjs-map-upsert-green.txt
+    exit_code: 0
+    engine_subtests_passed: 2
+terminal_verdict:
+  command: >-
+    npm ci && npm run build:vendor && npm run test:js &&
+    .venv/Scripts/python.exe manage.py check &&
+    .venv/Scripts/python.exe manage.py makemigrations --check --dry-run &&
+    .venv/Scripts/python.exe -m pytest -q
+  output: specs/verifications/pdfjs-legacy-gates.txt
+  exit_code: 0
+  note: One contiguous final run of the approved project gate.
+results:
+  python_tests: 17
+  python_subtests: 23
+  javascript_tests: 5
+  django_check: pass
+  migrations: unchanged
+  npm_audit_vulnerabilities: 0
+  ui_regressions: pass_on_legacy
+whitespace_review:
+  authored_files: pass
+  command: "git diff --check -- . ':!catalog/static/catalog/vendor/**'"
+  upstream_vendor: >-
+    Full git diff --check reports 12 trailing spaces in upstream webpack
+    comment lines. Preserve vendor files byte-for-byte instead of patching
+    third-party code. This style warning is not a test or runtime failure.
+  original_run: >-
+    specs/verifications/pdfjs-legacy-gates-with-vendor-whitespace.txt
+  original_run_exit_code: 2
+manual_acceptance:
+  firefox_esr_140_14: pending
+  yandex_25_2_4_1000: pending
+  user_pdf_and_actual_environment: pending

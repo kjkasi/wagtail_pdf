@@ -3,6 +3,7 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
   clampPage,
+  fitPageScale,
   nextTarget,
   nextZoom,
   zoomPercent,
@@ -17,13 +18,7 @@ const annotationImagePath = new URL(
   import.meta.url,
 ).toString();
 
-const root = document.querySelector("[data-pdf-viewer]");
-
-if (root) {
-  initialiseViewer(root);
-}
-
-async function initialiseViewer(viewer) {
+export function initialiseViewer(viewer) {
   const elements = getElements(viewer);
   const state = {
     document: null,
@@ -36,6 +31,8 @@ async function initialiseViewer(viewer) {
     rendering: false,
     forceRender: false,
     renderVersion: 0,
+    visible: false,
+    loadingStarted: false,
   };
 
   elements.previous.addEventListener("click", () => requestDelta(-1));
@@ -48,25 +45,47 @@ async function initialiseViewer(viewer) {
   window.addEventListener("resize", () => {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
-      if (!state.document || !state.currentPage) return;
+      if (!state.visible || !state.document) return;
       requestRender();
     }, 150);
   });
 
-  try {
-    const loadingTask = pdfjsLib.getDocument({ url: viewer.dataset.pdfUrl });
-    state.document = await loadingTask.promise;
-    state.totalPages = state.document.numPages;
-    state.linkService = createLinkService(state.document, {
-      goToPage: requestPage,
-      executeNamedAction,
-    });
-    elements.totalPage.textContent = String(state.totalPages);
-    updateControls();
-    await drainRenderQueue();
-  } catch (error) {
-    reportViewerError("load", error, viewer.dataset.pdfUrl);
-    showError("Не удалось загрузить PDF. Обновите страницу или попробуйте позже.");
+  return {
+    open() {
+      state.visible = true;
+      if (!state.loadingStarted) {
+        state.loadingStarted = true;
+        void loadDocument();
+      } else if (state.document) {
+        requestRender();
+      }
+    },
+    close() {
+      state.visible = false;
+      state.renderVersion += 1;
+      state.forceRender = true;
+      window.clearTimeout(resizeTimer);
+      viewer.setAttribute("aria-busy", "false");
+    },
+  };
+
+  async function loadDocument() {
+    viewer.setAttribute("aria-busy", "true");
+    try {
+      const loadingTask = pdfjsLib.getDocument({ url: viewer.dataset.pdfUrl });
+      state.document = await loadingTask.promise;
+      state.totalPages = state.document.numPages;
+      state.linkService = createLinkService(state.document, {
+        goToPage: requestPage,
+        executeNamedAction,
+      });
+      elements.totalPage.textContent = String(state.totalPages);
+      updateControls();
+      await drainRenderQueue();
+    } catch (error) {
+      reportViewerError("load", error, viewer.dataset.pdfUrl);
+      showError("Не удалось загрузить PDF. Обновите страницу или попробуйте позже.");
+    }
   }
 
   function requestDelta(delta) {
@@ -112,13 +131,13 @@ async function initialiseViewer(viewer) {
   }
 
   async function drainRenderQueue() {
-    if (state.rendering || !state.document) return;
+    if (state.rendering || !state.document || !state.visible) return;
     state.rendering = true;
     let renderFailed = false;
     viewer.setAttribute("aria-busy", "true");
 
     try {
-      while (state.currentPage !== state.targetPage || state.forceRender) {
+      while (state.visible && (state.currentPage !== state.targetPage || state.forceRender)) {
         state.forceRender = false;
         const candidatePage = state.targetPage;
         const candidateZoom = state.zoomFactor;
@@ -127,6 +146,7 @@ async function initialiseViewer(viewer) {
         elements.loading.textContent = `Отрисовка страницы ${candidatePage}…`;
 
         const page = await state.document.getPage(candidatePage);
+        if (!state.visible || candidateVersion !== state.renderVersion) continue;
         const rendered = await renderOffscreen(
           page,
           elements.stage,
@@ -135,6 +155,7 @@ async function initialiseViewer(viewer) {
         );
 
         if (
+          !state.visible ||
           candidatePage !== state.targetPage ||
           candidateZoom !== state.zoomFactor ||
           candidateVersion !== state.renderVersion
@@ -156,13 +177,16 @@ async function initialiseViewer(viewer) {
       }
     } catch (error) {
       renderFailed = true;
-      reportViewerError("render", error, viewer.dataset.pdfUrl);
-      showError("Не удалось отобразить страницу PDF.");
+      if (state.visible) {
+        reportViewerError("render", error, viewer.dataset.pdfUrl);
+        showError("Не удалось отобразить страницу PDF.");
+      }
     } finally {
       state.rendering = false;
       viewer.setAttribute("aria-busy", "false");
       if (
         !renderFailed &&
+        state.visible &&
         state.document &&
         (state.currentPage !== state.targetPage || state.forceRender)
       ) {
@@ -215,8 +239,19 @@ function getElements(viewer) {
 
 async function renderOffscreen(page, stage, zoomFactor, linkService) {
   const baseViewport = page.getViewport({ scale: 1 });
-  const availableWidth = Math.max(stage.clientWidth - 32, 1);
-  const fitScale = availableWidth / baseViewport.width;
+  // Measure the padding box without transient zoom scrollbars. Otherwise
+  // returning from zoom would fit to the old scrollbar-reduced dimensions.
+  const rect = stage.getBoundingClientRect();
+  const style = getComputedStyle(stage);
+  const availableWidth = rect.width - parseFloat(style.borderLeftWidth) -
+    parseFloat(style.borderRightWidth) - parseFloat(style.paddingLeft) -
+    parseFloat(style.paddingRight);
+  const availableHeight = rect.height - parseFloat(style.borderTopWidth) -
+    parseFloat(style.borderBottomWidth) - parseFloat(style.paddingTop) -
+    parseFloat(style.paddingBottom);
+  const fitScale = fitPageScale(
+    baseViewport.width, baseViewport.height, availableWidth, availableHeight,
+  );
   const effectiveScale = fitScale * zoomFactor;
   const viewport = page.getViewport({ scale: effectiveScale });
   const outputScale = Math.min(window.devicePixelRatio || 1, 2);

@@ -6,10 +6,19 @@ import {
   MIN_ZOOM,
   clampPage,
   clampZoom,
+  fitPageScale,
   nextTarget,
   nextZoom,
   zoomPercent,
 } from "./viewer-state.js";
+
+test("fit-page respects both axes for portrait and landscape pages", () => {
+  assert.equal(fitPageScale(600, 800, 1200, 600), 0.75);
+  assert.equal(fitPageScale(800, 600, 400, 900), 0.5);
+  assert.equal(fitPageScale(800, 600, 1600, 1200), 2);
+  assert.equal(fitPageScale(600, 800, 0, 600), 0);
+  assert.equal(fitPageScale(600, 800, 600, 0), 0);
+});
 
 test("page numbers are clamped to document boundaries", () => {
   assert.equal(clampPage(-10, 3), 1);

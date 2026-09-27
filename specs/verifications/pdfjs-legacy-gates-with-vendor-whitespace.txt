@@ -1,0 +1,58 @@
+
+added 5 packages, and audited 6 packages in 2s
+
+4 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> wagtail-pdf-viewer@0.1.0 build:vendor
+> node scripts/copy-pdfjs.mjs
+
+PDF.js assets copied to C:\Users\vedma\source\repos\wagtail_pdf\catalog\static\catalog\vendor\pdfjs
+Bootstrap assets copied to C:\Users\vedma\source\repos\wagtail_pdf\catalog\static\catalog\vendor\bootstrap
+
+> wagtail-pdf-viewer@0.1.0 test:js
+> node --test catalog/static/catalog/js/*.test.mjs
+
+✔ fit-page respects both axes for portrait and landscape pages (0.715ms)
+✔ page numbers are clamped to document boundaries (0.1329ms)
+✔ navigation uses the latest requested page (0.1894ms)
+✔ zoom is bounded between 50 and 300 percent (0.1726ms)
+✔ zoom changes in exact 25 percent steps (0.7144ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.8679
+System check identified no issues (0 silenced).
+No changes detected
+.................                                 [100%]
+17 passed, 23 subtests passed in 35.41s
+catalog/static/catalog/vendor/pdfjs/pdf.js:6162: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.js:6176: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.js:6179: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.js:6183: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.js:6211: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.js:6216: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.worker.js:5590: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.worker.js:5604: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.worker.js:5607: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.worker.js:5611: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.worker.js:5639: trailing whitespace.
++/******/ 
+catalog/static/catalog/vendor/pdfjs/pdf.worker.js:5644: trailing whitespace.
++/******/ 

@@ -1,15 +1,23 @@
-active_flow: planning
+active_flow: verification
+active_epic: e01
+branch: feat/bootstrap-pdf-modal
 active_plan: specs/BOOTSTRAP_ESR_MODAL_PLAN.md
 planning:
-  status: planned_not_implemented
+  status: ui_automated_verified_manual_pending
+  compatibility_status: api_regression_fixed_user_verification_pending
+  approved_scope: ui_and_browser_compatibility
   scope: >-
     Bootstrap для публичного сайта; автоматический PDF modal;
     fit-page на экране 1920x1080
-  target_packages:
-    - "firefox-esr 140.14.0-alt1"
-    - "yandex-browser-stable 25.2.4.1000-alt1"
+  example_browser_versions:
+    - "Firefox ESR 140.14.0"
+    - "Yandex Browser 25.2.4.1000"
+  os_constraint: none
+  user_clarification: >-
+    ALT-пакеты были примерами версий браузеров, а не средой сбоя.
   compatibility_gate: >-
-    Сначала воспроизвести и подтвердить причину в обоих целевых браузерах
+    Дефект отсутствующих Map upsert API воспроизведён и исправлен
+    legacy-сборкой. Полная приёмка реальных браузеров ещё требуется.
   previous_plan: specs/PDF_VIEWER_CHANGE_PLAN.md
 previous_flow:
   name: fix_bug
@@ -25,8 +33,22 @@ previous_plan_verification:
   automated: passing
   django_tests: 11
   javascript_tests: 4
+verification:
+  evidence: specs/verifications/pdfjs-legacy-verify.yaml
+  ui_evidence: specs/verifications/bootstrap-modal-verify.yaml
+  automated: passing
+  python_tests: 17
+  python_subtests: 23
+  javascript_tests: 5
+  implemented_steps: [1, 2, 3, 4]
+  step_5: automated_pass_manual_pending
+  compatibility_steps_0_and_4: api_reproduction_and_fix_verified
+  pdfjs_build: legacy_6.3.289
+  manual_acceptance: pending
 handoff:
-  next_skill: diagnose-root
+  next_skill: verify-work
   next_action: >-
-    Зафиксировать Console/HAR и воспроизведение сбоя на целевых ALT-пакетах;
-    затем реализовать этапы нового плана
+    Пройти ручную приёмку интерфейса и повторить исходный сценарий
+    в проблемных версиях браузеров по README, независимо от ОС.
+    Map upsert TypeError устранён в API-регрессии. Остаточные ошибки
+    исследовать по Console/HAR и фактической версии движка.

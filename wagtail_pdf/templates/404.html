@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Page not found{% endblock %}
-
-{% block body_class %}template-404{% endblock %}
+{% block title %}Страница не найдена{% endblock %}
 
 {% block content %}
-<h1>Page not found</h1>
-
-<h2>Sorry, this page could not be found.</h2>
+<div class="alert alert-warning">
+    <h1 class="h3">Страница не найдена</h1>
+    <p>Проверьте адрес или вернитесь на главную.</p>
+    <a class="btn btn-outline-dark" href="/">На главную</a>
+</div>
 {% endblock %}

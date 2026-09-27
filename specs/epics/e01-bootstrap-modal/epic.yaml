@@ -1,0 +1,63 @@
+id: e01
+title: Bootstrap PDF modal
+source_plan: specs/BOOTSTRAP_ESR_MODAL_PLAN.md
+type: feat
+context: public_ui
+status: automated_verified_manual_pending
+dependency_review:
+  bootstrap: "[OK] 5.3.8, local MIT assets; Popper license included"
+  pdfjs: "[OK] 6.3.289 legacy, main and worker updated together"
+api_reference: https://getbootstrap.com/docs/5.3/components/modal/
+api_contract: >-
+  Modal.show returns before shown.bs.modal; initialize the viewer
+  after shown.bs.modal. getOrCreateInstance avoids duplicate instances.
+evidence: specs/verifications/bootstrap-modal-verify.yaml
+scope: ui_and_browser_compatibility
+compatibility: map_upsert_regression_fixed_actual_browsers_pending
+compatibility_evidence: specs/verifications/pdfjs-legacy-verify.yaml
+stories:
+  - id: e01s01
+    title: Local Bootstrap public pages
+    status: automated_verified_manual_pending
+    tasks:
+      - description: >-
+          Pin Bootstrap 5.3.8, copy licensed local assets,
+          migrate public templates
+        verify: >-
+          npm run build:vendor &&
+          .venv/Scripts/python.exe -m pytest catalog/tests/test_pages.py -q
+  - id: e01s02
+    title: Modal lifecycle
+    status: automated_verified_manual_pending
+    tasks:
+      - description: >-
+          Auto-open, close, focus return, reopen, invalidate hidden renders
+        verify: >-
+          .venv/Scripts/python.exe -m pytest catalog/tests/test_browser.py -q
+  - id: e01s04
+    title: Browser APIs supported through upstream legacy build
+    status: automated_verified_manual_pending
+    tasks:
+      - description: >-
+          Reproduce absent Map upsert APIs in page and worker,
+          then use matching legacy assets without a version downgrade
+        verify: >-
+          npm run build:vendor &&
+          .venv/Scripts/python.exe -m pytest catalog/tests/test_browser.py
+          -k without_native_map -q
+  - id: e01s03
+    title: Fit-page geometry and regressions
+    status: automated_verified_manual_pending
+    tasks:
+      - description: >-
+          Fit both axes and verify bounds, zoom, orientation and resize
+        verify: >-
+          npm run test:js &&
+          .venv/Scripts/python.exe -m pytest catalog/tests/test_browser.py -q
+      - description: >-
+          Verify full regression suite and document remaining browser acceptance
+        verify: >-
+          npm run build:vendor && npm run test:js &&
+          .venv/Scripts/python.exe manage.py check &&
+          .venv/Scripts/python.exe manage.py makemigrations --check --dry-run &&
+          .venv/Scripts/python.exe -m pytest -q

@@ -8,6 +8,7 @@
     "test:js": "node --test catalog/static/catalog/js/*.test.mjs"
   },
   "dependencies": {
+    "bootstrap": "5.3.8",
     "pdfjs-dist": "6.3.289"
   }
 }

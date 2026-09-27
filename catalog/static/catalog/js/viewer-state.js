@@ -2,6 +2,12 @@ export const MIN_ZOOM = 0.5;
 export const MAX_ZOOM = 3;
 export const ZOOM_STEP = 0.25;
 
+// A zero-size (hidden) stage cannot produce a usable viewport.
+export function fitPageScale(pageWidth, pageHeight, availableWidth, availableHeight) {
+  if (availableWidth <= 0 || availableHeight <= 0) return 0;
+  return Math.min(availableWidth / pageWidth, availableHeight / pageHeight);
+}
+
 export function clampPage(pageNumber, totalPages) {
   if (!Number.isInteger(totalPages) || totalPages < 1) {
     return 1;

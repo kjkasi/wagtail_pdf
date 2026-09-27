@@ -1,0 +1,96 @@
+plan: specs/BOOTSTRAP_ESR_MODAL_PLAN.md
+branch: feat/bootstrap-pdf-modal
+status: historical_ui_gate_pass
+superseded_by: specs/verifications/pdfjs-legacy-verify.yaml
+scope_note: >-
+  This records the UI gate before the user clarified the browser requirement
+  and before the standard PDF.js distribution was replaced by legacy.
+verified_date: "2026-09-27"
+terminal_verdict:
+  exit_code: 0
+  command: >-
+    npm ci && npm run build:vendor && npm run test:js &&
+    .venv/Scripts/python.exe manage.py check &&
+    .venv/Scripts/python.exe manage.py makemigrations --check --dry-run &&
+    .venv/Scripts/python.exe -m pytest -q && git diff --check
+  output: specs/verifications/bootstrap-modal-gates.txt
+  note: Output from one contiguous final run, not combined attempts.
+results:
+  python_tests: 16
+  python_subtests: 21
+  javascript_tests: 5
+  django_check: pass
+  migration_drift: none
+  vendor_build: pass
+  npm_audit_vulnerabilities: 0
+browser_environment:
+  os: Windows
+  runner: Playwright 1.63.0
+  chromium: "153.0.8010.12"
+  firefox: "155.0"
+  origin: loopback_HTTP
+  pdf: generated_three_page_fixture_with_annotations
+  viewport_sizes:
+    - [1920, 1080]
+    - [1920, 900]
+    - [1280, 720]
+    - [390, 844]
+  resize_target: [800, 600]
+  device_pixel_ratio: [1, 2]
+coverage:
+  both_engines:
+    - Full bounds before clicks, without scroll-into-view
+    - Portrait and landscape fit, no stage overflow above 1px
+    - Long title, zoom 300%, resize, fixed toolbar, accessible top-left PDF
+    - Annotation layer alignment, internal and safe external links
+    - Rapid navigation and zoom preservation
+    - PDF load, viewer import, library import and worker failures
+    - Bootstrap load failure fallback
+  chromium_additional:
+    - Auto-open, Escape, close button, focus return, Tab and Shift-Tab
+    - Reopen preserves page and zoom without another PDF request
+    - Close during delayed PDF load and a queued render
+    - Hidden resize and stale canvas commit guard
+    - Authenticated Wagtail userbar stacking and DPR 2
+red_green_evidence:
+  - >-
+    test_public_pages_use_local_bootstrap failed on missing Bootstrap URLs;
+    passed after local assets and templates were added.
+  - >-
+    test_modal_lifecycle_and_close_during_loading failed on missing modal;
+    passed after lifecycle implementation and keyboard focus wrapping.
+  - >-
+    fitPageScale test failed on missing export,
+    then passed after implementation.
+  - >-
+    Geometry matrix failed with the width-only renderer in both engines;
+    passed after fitPageScale was connected using measured padding and borders.
+static_diagnostics:
+  active_lsp_probe: performed_on_8_changed_source_files
+  errors: 0
+  limitations: >-
+    Five files had inconclusive clean confirmations from push-only servers.
+    This is not a full static-analysis clean verdict.
+  reviewed_auxiliary_findings:
+    - >-
+      Existing console.error helper is called from catch blocks and redacts
+      URL query parameters; generic no-console warning is not actionable.
+    - >-
+      Existing hidden!important rule intentionally overrides vendor display
+      declarations, including the PDF canvas rule.
+    - >-
+      Array last-element syntax in the startup loader stays conservative;
+      prefer-at is a style hint, not a correctness issue.
+manual_acceptance:
+  status: pending
+  protocol: README.md
+  physical_1920x1080_non_F11: not_verified
+  firefox_esr_140_14_0_alt1: blocked_no_target_access
+  yandex_25_2_4_1000_alt1: blocked_no_target_access
+  original_compatibility_bug: not_reproduced_not_closed
+workflow_notes:
+  - No commits, merge, deployment or independent reviewer were run.
+  - >-
+    Project has no CONVENTIONS.md, dedicated lint/typecheck scripts,
+    or bigpowers orchestration gate scripts. Available project commands
+    and active diagnostics were used; absent gates are not claimed as passed.

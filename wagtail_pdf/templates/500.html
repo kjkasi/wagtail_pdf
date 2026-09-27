@@ -1,13 +1,23 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-    <head>
-        <meta charset="utf-8" />
-        <title>Internal server error</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-    </head>
-    <body>
-        <h1>Internal server error</h1>
-
-        <h2>Sorry, there seems to be an error. Please try again soon.</h2>
-    </body>
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ошибка сервера · Каталог PDF</title>
+    <link rel="stylesheet" href="{% static 'catalog/vendor/bootstrap/bootstrap.min.css' %}">
+</head>
+<body>
+    <header class="navbar bg-body-tertiary border-bottom">
+        <div class="container"><a class="navbar-brand fw-bold" href="/">Каталог PDF</a></div>
+    </header>
+    <main class="container py-4">
+        <div class="alert alert-danger">
+            <h1 class="h3">Ошибка сервера</h1>
+            <p>Не удалось открыть страницу. Попробуйте позже.</p>
+            <a class="btn btn-outline-dark" href="/">На главную</a>
+        </div>
+    </main>
+    <script src="{% static 'catalog/vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+</body>
 </html>

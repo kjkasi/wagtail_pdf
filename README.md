@@ -6,10 +6,14 @@
 
 - каталог опубликованных PDF-документов;
 - навигация кнопками «Назад» и «Вперёд»;
-- масштаб 50–300% с шагом 25% и сбросом «По ширине»;
+- масштаб 50–300% с шагом 25% и сбросом «Вписать страницу»;
 - ссылки, заметки, выделения и другие поддерживаемые аннотации PDF.js;
-- адаптивная почти полноэкранная область просмотра;
-- локальные PDF.js, worker, CSS и изображения без внешнего CDN.
+- автоматическое открытие PDF в модальном окне Bootstrap на весь viewport, без режима F11;
+- закрытие крестиком или Escape и повторное открытие кнопкой «Открыть PDF»;
+- сохранение текущей страницы и масштаба при повторном открытии;
+- локальные Bootstrap, PDF.js, worker, CSS, изображения и лицензии без CDN.
+
+При масштабе 100% страница вписывается по ширине и высоте доступной области. Это процент от масштаба вписывания, не физический размер PDF. При увеличении прокручивается только PDF, а кнопки остаются на месте.
 
 JavaScript-действия из PDF не выполняются. Внешние ссылки открываются в новой вкладке с `noopener noreferrer`.
 
@@ -25,7 +29,7 @@ python -m venv .venv
 # Windows PowerShell: .venv\Scripts\Activate.ps1
 # Linux/macOS: source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
-npm install
+npm ci
 npm run build:vendor
 python manage.py migrate
 python manage.py createsuperuser
@@ -56,7 +60,8 @@ python manage.py create_demo
 
 Если PDF не загружается, откройте DevTools → Network и проверьте ответы для:
 
-- `catalog/js/pdf-viewer.js`;
+- `catalog/vendor/bootstrap/bootstrap.min.css` и `bootstrap.bundle.min.js`;
+- `catalog/js/pdf-modal.js` и `pdf-viewer.js`;
 - `catalog/vendor/pdfjs/pdf.js`;
 - `catalog/vendor/pdfjs/pdf.worker.js`;
 - `catalog/vendor/pdfjs/pdf_viewer.css`;
@@ -71,11 +76,43 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 npm run build:vendor
 npm run test:js
-python -m playwright install chromium  # один раз
+python -m playwright install chromium firefox  # один раз
 pytest
 ```
 
-Браузерный smoke-тест использует origin `127.0.0.1`, проверяет загрузку PDF.js и PDF, навигацию, стабильность toolbar, zoom, annotation layer и обработку ошибки загрузки.
+Тесты Playwright запускают Chromium и Firefox. Они проверяют навигацию, аннотации, ошибки импорта и worker, а также координаты PDF и кнопок. Проверка координат выполняется до кликов, без автоматической прокрутки.
+
+Размеры viewport: 1920×1080, 1920×900, 1280×720 и 390×844. Дополнительно проверяются resize, zoom, modal lifecycle, возврат фокуса и расположение над Wagtail userbar.
+
+## Статус целевых браузеров
+
+| Браузер | Статус |
+| --- | --- |
+| Playwright Chromium и Firefox | Автоматические проверки |
+| Firefox ESR 140.14 | Проверка реального браузера ожидается |
+| Яндекс Браузер 25.2.4.1000 | Проверка реального браузера и версии движка ожидается |
+
+Это примеры версий с ошибками, а не ограничение на ОС. Упоминание ALT-пакетов в исходном плане не означало, что сбой происходит только на ALT.
+
+Используется официальная `legacy`-сборка PDF.js 6.3.289: библиотека, worker и annotation CSS из одного пакета. Версия PDF.js не снижалась.
+
+Стандартная сборка требует `Map.getOrInsertComputed`, отсутствующий в Firefox 140. Тест без Map upsert API падает на стандартной сборке и проходит на `legacy` в обоих тестовых движках.
+
+Playwright Firefox не заменяет Firefox ESR, а Chromium не заменяет Яндекс Браузер. Симуляция отсутствующих API не доказывает полную поддержку старого движка. Исходный пользовательский сценарий ещё нужно проверить.
+
+Для ручной приёмки в каждом проблемном браузере:
+
+1. Запишите версии ОС и браузера, User-Agent, scaling дисплея и масштаб браузера.
+2. На экране 1920×1080 разверните обычное окно без F11. Установите масштаб браузера 100%.
+3. Запишите `innerWidth`, `innerHeight` и `devicePixelRatio` из Console.
+4. Откройте один и тот же PDF по LAN URL в обоих браузерах.
+5. Проверьте целую страницу и все кнопки без прокрутки. Проверьте альбомную страницу, zoom, аннотации и ссылки.
+6. Закройте окно крестиком и Escape. Откройте повторно. Проверьте страницу, zoom и фокус.
+7. Сохраните Console, HAR и скриншот отдельно для каждого браузера. Перед передачей удалите cookies, токены и чувствительные параметры URL.
+
+Физическое разрешение экрана не равно CSS viewport. Приёмка на реальном экране и повтор исходного сценария остаются обязательными.
+
+После обновления выполните `npm run build:vendor`. В production также обновите собранную статику через `python manage.py collectstatic --noinput`. Перезагрузите страницу без кеша, чтобы библиотека и worker обновились вместе.
 
 ## Зафиксированные версии
 
@@ -83,5 +120,6 @@ pytest
 - Django 5.2.17 LTS;
 - Wagtail 7.4.3 LTS;
 - pypdf 6.19.0;
-- PDF.js (`pdfjs-dist`) 6.3.289;
-- Playwright 1.63.0 (только для браузерного smoke-теста).
+- PDF.js (`pdfjs-dist`) 6.3.289, `legacy`-сборка;
+- Bootstrap 5.3.8;
+- Playwright 1.63.0 (для браузерных тестов).

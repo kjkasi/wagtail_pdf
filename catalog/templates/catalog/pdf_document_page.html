@@ -9,43 +9,53 @@
 {% endblock %}
 
 {% block content %}
-<article class="pdf-viewer" data-pdf-viewer data-pdf-url="{{ page.pdf_document.url }}" aria-busy="true">
-    <header class="document-heading">
-        <a class="back-link" href="{% pageurl page.get_parent.specific %}">← Вернуться в каталог</a>
-        <h1>{{ page.title }}</h1>
-        <p>{{ page.description }}</p>
-    </header>
-
-    <div class="viewer-shell">
-        <section class="pdf-stage" data-pdf-stage aria-label="Страница PDF-документа">
-            <p class="viewer-status" data-loading role="status" aria-live="polite">Загрузка PDF…</p>
-            <p class="viewer-error" data-error role="alert" hidden></p>
-            <div class="pdf-page" data-pdf-page>
-                <canvas data-pdf-canvas hidden aria-label="Текущая страница PDF"></canvas>
-                <div class="annotationLayer" data-annotation-layer></div>
-            </div>
-        </section>
-
-        <nav class="viewer-toolbar" aria-label="Управление PDF-документом">
-            <div class="page-controls">
-                <button type="button" data-previous disabled>← Назад</button>
-                <p class="page-indicator" aria-live="polite">
-                    <span class="visually-hidden">Текущая страница:</span>
-                    <strong data-current-page>—</strong> / <span data-total-pages>—</span>
-                </p>
-                <button type="button" data-next disabled>Вперёд →</button>
-            </div>
-            <div class="zoom-controls" aria-label="Масштаб страницы">
-                <button type="button" data-zoom-out disabled aria-label="Уменьшить масштаб">−</button>
-                <output data-zoom-level aria-live="polite">100%</output>
-                <button type="button" data-zoom-in disabled aria-label="Увеличить масштаб">+</button>
-                <button type="button" data-zoom-fit disabled>По ширине</button>
-            </div>
-        </nav>
-    </div>
+<article>
+    <a class="d-inline-block mb-2" href="{% pageurl page.get_parent.specific %}">← Вернуться в каталог</a>
+    <h1>{{ page.title }}</h1>
+    <p class="text-body-secondary">{{ page.description }}</p>
+    <button type="button" class="btn btn-primary" data-pdf-open>Открыть PDF</button>
+    <p class="alert alert-danger mt-3" data-modal-error role="alert" hidden></p>
+    <noscript><p class="alert alert-warning mt-3">Для просмотра PDF включите JavaScript.</p></noscript>
 </article>
+
+<div class="modal pdf-modal" id="pdf-modal" data-pdf-modal tabindex="-1" aria-labelledby="pdf-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <header class="modal-header py-2">
+                <h2 class="modal-title fs-6" id="pdf-modal-title" title="{{ page.title }}">{{ page.title }}</h2>
+                <button type="button" class="btn-close" data-pdf-close data-bs-dismiss="modal" aria-label="Закрыть PDF"></button>
+            </header>
+            <div class="viewer-shell" data-pdf-viewer data-pdf-url="{{ page.pdf_document.url }}" aria-busy="false">
+                <section class="pdf-stage" data-pdf-stage aria-label="Страница PDF-документа">
+                    <p class="viewer-status" data-loading role="status" aria-live="polite">Загрузка PDF…</p>
+                    <p class="viewer-error alert alert-danger" data-error role="alert" hidden></p>
+                    <div class="pdf-page" data-pdf-page>
+                        <canvas data-pdf-canvas hidden aria-label="Текущая страница PDF"></canvas>
+                        <div class="annotationLayer" data-annotation-layer></div>
+                    </div>
+                </section>
+                <nav class="viewer-toolbar" aria-label="Управление PDF-документом">
+                    <div class="page-controls">
+                        <button type="button" class="btn btn-primary" data-previous disabled>← Назад</button>
+                        <p class="page-indicator" aria-live="polite">
+                            <span class="visually-hidden">Текущая страница:</span>
+                            <strong data-current-page>—</strong> / <span data-total-pages>—</span>
+                        </p>
+                        <button type="button" class="btn btn-primary" data-next disabled>Вперёд →</button>
+                    </div>
+                    <div class="zoom-controls" aria-label="Масштаб страницы">
+                        <button type="button" class="btn btn-outline-primary" data-zoom-out disabled aria-label="Уменьшить масштаб">−</button>
+                        <output data-zoom-level aria-live="polite" title="Процент от масштаба вписывания">100%</output>
+                        <button type="button" class="btn btn-outline-primary" data-zoom-in disabled aria-label="Увеличить масштаб">+</button>
+                        <button type="button" class="btn btn-outline-primary" data-zoom-fit disabled>Вписать страницу</button>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script type="module" src="{% static 'catalog/js/pdf-viewer.js' %}"></script>
+<script src="{% static 'catalog/js/pdf-modal.js' %}"></script>
 {% endblock %}

@@ -1,17 +1,32 @@
-active_flow: verify_work
-active_plan: specs/PDF_VIEWER_CHANGE_PLAN.md
+active_flow: planning
+active_plan: specs/BOOTSTRAP_ESR_MODAL_PLAN.md
+planning:
+  status: planned_not_implemented
+  scope: >-
+    Bootstrap для публичного сайта; автоматический PDF modal;
+    fit-page на экране 1920x1080
+  target_packages:
+    - "firefox-esr 140.14.0-alt1"
+    - "yandex-browser-stable 25.2.4.1000-alt1"
+  compatibility_gate: >-
+    Сначала воспроизвести и подтвердить причину в обоих целевых браузерах
+  previous_plan: specs/PDF_VIEWER_CHANGE_PLAN.md
 previous_flow:
   name: fix_bug
   status: validated_pending_release
   handoff: release-branch
-implementation:
+previous_plan_implementation:
   current_step: 6
   completed_steps: [0, 1, 2, 3, 4, 5, 7]
   backup: page-comments-backup.json
-  manual_verification_pending: "Проверка со второго компьютера в LAN с HAR/скриншотом"
-verification:
+  manual_verification_pending: >-
+    Проверка со второго компьютера в LAN с HAR/скриншотом
+previous_plan_verification:
   automated: passing
   django_tests: 11
   javascript_tests: 4
 handoff:
-  next_skill: manual_lan_verification
+  next_skill: diagnose-root
+  next_action: >-
+    Зафиксировать Console/HAR и воспроизведение сбоя на целевых ALT-пакетах;
+    затем реализовать этапы нового плана

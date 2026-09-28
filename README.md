@@ -9,6 +9,7 @@
 - масштаб 50–300% с шагом 25% и сбросом «Вписать страницу»;
 - ссылки, заметки, выделения и другие поддерживаемые аннотации PDF.js;
 - автоматическое открытие PDF в модальном окне Bootstrap на весь viewport, без режима F11;
+- скачивание опубликованных PDF через same-origin endpoint с attachment-ответом;
 - закрытие крестиком или Escape и повторное открытие кнопкой «Открыть PDF»;
 - сохранение текущей страницы и масштаба при повторном открытии;
 - локальные Bootstrap, PDF.js, worker, CSS, изображения и лицензии без CDN.
@@ -65,7 +66,8 @@ python manage.py create_demo
 - `catalog/vendor/pdfjs/pdf.js`;
 - `catalog/vendor/pdfjs/pdf.worker.js`;
 - `catalog/vendor/pdfjs/pdf_viewer.css`;
-- `/documents/<id>/<filename>.pdf`.
+- `/documents/<id>/<filename>.pdf`;
+- `/downloads/pdf/<page-id>/` для скачивания PDF.
 
 Все ответы должны иметь статус `200`; PDF должен возвращаться как `application/pdf`. Консоль просмотрщика сообщает этап `load` или `render` и URL без query-параметров. `runserver` предназначен только для разработки и не должен публиковаться в интернете.
 

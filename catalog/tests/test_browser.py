@@ -385,7 +385,9 @@ class ViewerBrowserSmokeTests(StaticLiveServerTestCase):
                 && Math.abs(box.width - width * scale) <= 1
                 && Math.abs(box.height - height * scale) <= 1;
         }""", arg=[page_width, page_height], timeout=10_000)
-        bounds = page.locator("[data-pdf-canvas], .viewer-toolbar, [data-pdf-modal] button").evaluate_all("""
+        bounds = page.locator(
+            "[data-pdf-canvas], .viewer-toolbar, [data-pdf-modal] button, [data-pdf-download]"
+        ).evaluate_all("""
             elements => elements.map(el => {
                 const r = el.getBoundingClientRect();
                 return {label: el.textContent || el.getAttribute('aria-label'),

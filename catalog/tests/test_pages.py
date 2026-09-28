@@ -1,11 +1,13 @@
 import shutil
 import tempfile
+from collections.abc import Iterable
 from io import BytesIO
 from typing import cast
 
 from django.core.files.base import ContentFile
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.test import RequestFactory, TestCase, override_settings
+from django.urls import reverse
 from django.views.defaults import page_not_found, server_error
 from pypdf import PdfWriter
 from wagtail.documents import get_document_model
@@ -102,7 +104,11 @@ class CatalogPageTests(TestCase):
         self.assertContains(response, 'class="viewer-toolbar"')
         self.assertContains(response, 'data-previous disabled')
         self.assertContains(response, 'data-next disabled')
-        self.assertContains(response, f'href="{page.pdf_document.url}" download')
+        self.assertContains(
+            response,
+            f'href="{reverse("catalog:download_pdf", args=[page.pk])}"',
+        )
+        self.assertContains(response, 'data-pdf-download')
         self.assertContains(response, "Скачать PDF")
         self.assertContains(response, "data-zoom-out")
         self.assertContains(response, "data-zoom-in")
@@ -113,6 +119,29 @@ class CatalogPageTests(TestCase):
         self.assertNotContains(response, 'class="comment-panel"')
         self.assertNotContains(response, "data-comment")
         self.assertNotContains(response, "pdf-comments")
+
+    def test_pdf_download_is_an_attachment_for_live_pages_only(self):
+        page = self.add_document("Скачать документ", "download", live=True)
+        expected = page.pdf_document.file.read()
+
+        response = cast(
+            FileResponse,
+            self.client.get(reverse("catalog:download_pdf", args=[page.pk])),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("attachment", response["Content-Disposition"])
+        self.assertIn("download.pdf", response["Content-Disposition"])
+        content = b"".join(cast(Iterable[bytes], response.streaming_content))
+        self.assertEqual(content, expected)
+
+        draft = self.add_document("Черновик", "download-draft", live=False)
+        draft_response = cast(
+            HttpResponse,
+            self.client.get(reverse("catalog:download_pdf", args=[draft.pk])),
+        )
+        self.assertEqual(draft_response.status_code, 404)
 
     def test_public_pages_use_local_bootstrap(self):
         document = self.add_document("Bootstrap PDF", "bootstrap", live=True)

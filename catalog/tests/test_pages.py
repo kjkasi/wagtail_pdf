@@ -67,7 +67,7 @@ class CatalogPageTests(TestCase):
         self.add_document("Опубликован", "published", live=True)
         self.add_document("Черновик", "draft", live=False)
 
-        response = self.client.get(self.index.url)
+        response = cast(HttpResponse, self.client.get(self.index.url))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Опубликован")
@@ -102,6 +102,8 @@ class CatalogPageTests(TestCase):
         self.assertContains(response, 'class="viewer-toolbar"')
         self.assertContains(response, 'data-previous disabled')
         self.assertContains(response, 'data-next disabled')
+        self.assertContains(response, f'href="{page.pdf_document.url}" download')
+        self.assertContains(response, "Скачать PDF")
         self.assertContains(response, "data-zoom-out")
         self.assertContains(response, "data-zoom-in")
         self.assertContains(response, "data-zoom-fit")

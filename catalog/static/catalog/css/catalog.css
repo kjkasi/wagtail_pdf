@@ -65,6 +65,7 @@ body { min-width: 320px; }
     justify-content: center;
     gap: .5rem;
 }
+.page-controls { flex-wrap: wrap; }
 .page-indicator { margin: 0; min-width: 5rem; text-align: center; }
 .zoom-controls output { min-width: 3rem; text-align: center; }
 .page-indicator, .zoom-controls output { font-variant-numeric: tabular-nums; }

@@ -40,6 +40,7 @@ export function initialiseViewer(viewer) {
   elements.zoomOut.addEventListener("click", () => requestZoom(-1));
   elements.zoomIn.addEventListener("click", () => requestZoom(1));
   elements.zoomFit.addEventListener("click", () => setZoom(1));
+  window.addEventListener("keydown", handleKeydown);
 
   let resizeTimer;
   window.addEventListener("resize", () => {
@@ -86,6 +87,23 @@ export function initialiseViewer(viewer) {
       reportViewerError("load", error, viewer.dataset.pdfUrl);
       showError("Не удалось загрузить PDF. Обновите страницу или попробуйте позже.");
     }
+  }
+
+  function handleKeydown(event) {
+    if (
+      !state.visible ||
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    ) {
+      return;
+    }
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+
+    event.preventDefault();
+    requestDelta(event.key === "ArrowLeft" ? -1 : 1);
   }
 
   function requestDelta(delta) {

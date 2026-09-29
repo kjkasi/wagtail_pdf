@@ -440,6 +440,11 @@ class ViewerBrowserSmokeTests(StaticLiveServerTestCase):
             )
             self._assert_layers_align(browser_page)
 
+            browser_page.keyboard.press("ArrowRight")
+            expect(browser_page.locator("[data-current-page]")).to_have_text("2")
+            browser_page.keyboard.press("ArrowLeft")
+            expect(browser_page.locator("[data-current-page]")).to_have_text("1")
+
             annotation_layer.locator("[data-internal-link] a").click()
             expect(browser_page.locator("[data-current-page]")).to_have_text("2")
             browser_page.locator("[data-previous]").click()

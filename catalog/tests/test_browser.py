@@ -444,6 +444,29 @@ class ViewerBrowserSmokeTests(StaticLiveServerTestCase):
             expect(browser_page.locator("[data-current-page]")).to_have_text("2")
             browser_page.keyboard.press("ArrowLeft")
             expect(browser_page.locator("[data-current-page]")).to_have_text("1")
+            browser_page.evaluate("""
+                () => {
+                    const input = document.createElement("input");
+                    input.setAttribute("data-keyboard-input-test", "true");
+                    input.value = "page";
+                    input.style.position = "fixed";
+                    input.style.left = "-100px";
+                    document.querySelector("[data-pdf-viewer]").append(input);
+                    input.focus();
+                    input.setSelectionRange(2, 2);
+                }
+            """)
+            browser_page.keyboard.press("ArrowRight")
+            expect(browser_page.locator("[data-current-page]")).to_have_text("1")
+            expect(
+                browser_page.locator("[data-keyboard-input-test]")
+            ).to_have_value("page")
+            self.assertEqual(
+                browser_page.locator("[data-keyboard-input-test]").evaluate(
+                    "input => input.selectionStart"
+                ),
+                3,
+            )
 
             annotation_layer.locator("[data-internal-link] a").click()
             expect(browser_page.locator("[data-current-page]")).to_have_text("2")

@@ -96,7 +96,8 @@ export function initialiseViewer(viewer) {
       event.altKey ||
       event.ctrlKey ||
       event.metaKey ||
-      event.shiftKey
+      event.shiftKey ||
+      isEditingTarget(event.target)
     ) {
       return;
     }
@@ -104,6 +105,14 @@ export function initialiseViewer(viewer) {
 
     event.preventDefault();
     requestDelta(event.key === "ArrowLeft" ? -1 : 1);
+  }
+
+  function isEditingTarget(target) {
+    return (
+      target instanceof HTMLElement &&
+      (target.isContentEditable ||
+        target.matches("input, textarea, select, option"))
+    );
   }
 
   function requestDelta(delta) {

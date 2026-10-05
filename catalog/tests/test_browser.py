@@ -188,12 +188,13 @@ class ViewerBrowserSmokeTests(StaticLiveServerTestCase):
                 context.close()
                 browser.close()
 
-    def test_viewer_without_native_map_upsert_in_page_and_worker(self):
-        # Firefox 140 lacks these APIs (MDN: Firefox 144 / Chrome 145).
-        # This simulates API availability, not an entire old browser engine.
+    def test_viewer_without_firefox_115_apis_in_page_and_worker(self):
+        # Firefox 115 lacks these APIs; this simulates its JavaScript surface,
+        # not the complete browser engine.
         missing_apis = """
             delete Map.prototype.getOrInsert;
             delete Map.prototype.getOrInsertComputed;
+            delete Promise.withResolvers;
         """
         page_url = self.live_server_url + self.document_page.url
 

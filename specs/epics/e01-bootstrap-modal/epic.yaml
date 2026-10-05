@@ -44,7 +44,7 @@ stories:
         verify: >-
           npm run build:vendor &&
           .venv/Scripts/python.exe -m pytest catalog/tests/test_browser.py
-          -k without_native_map -q
+          -k without_firefox_115_apis -q
   - id: e01s03
     title: Fit-page geometry and regressions
     status: automated_verified_manual_pending

@@ -21,16 +21,17 @@ fix:
   main: legacy/build/pdf.mjs
   worker: legacy/build/pdf.worker.mjs
   annotation_assets: legacy/web
+  compatibility_layer: scripts/pdfjs-compatibility.js
   downgrade: false
-  custom_polyfills: false
-  byte_for_byte_vendor_comparison: pass
+  custom_polyfills: minimal Promise.withResolvers only
+  generated_assets: upstream legacy files with compatibility prefix
 reproduction:
   method: >-
-    Remove Map upsert APIs before module execution in page and worker.
+    Remove Map upsert APIs and Promise.withResolvers before module execution in page and worker.
     Load the annotated fixture, render canvas, display annotations,
     and follow an internal link in Chromium and Firefox.
   scope_limit: >-
-    Missing API simulation is not an entire old browser engine.
+    Missing API simulation is not an entire Firefox ESR or other old browser engine.
     Actual Firefox ESR and Yandex versions remain unverified.
   red:
     output: specs/verifications/pdfjs-map-upsert-red.txt
